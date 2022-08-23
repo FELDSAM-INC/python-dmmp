@@ -321,3 +321,26 @@ def mpaths_get():
     for mpath in all_data["maps"]:
         rc.append(DMMP_mpath(mpath))
     return rc
+
+
+def mpath_get(wwid):
+    """
+    Usage:
+        Query specific multipath device.
+    Parameters:
+        wwid (str): wwid of multipath device
+    Returns:
+        DMMP_mpath       DMMP_mpath object.
+    """
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.settimeout(60)
+    s.connect(_IPC_ADDR)
+    json_str = _ipc_exec(s, "list multipath {map} json".format(map=wwid))
+    s.close()
+    if len(json_str) == 0:
+        return rc
+    all_data = json.loads(json_str)
+    if all_data["major_version"] != _API_VERSION_MAJOR:
+        raise exception("incorrect version")
+
+    return DMMP_mpath(all_data["map"])
